@@ -12,7 +12,7 @@
         "build": "npm run pre_build && tsc -p tsconfig.json",
         "build:render": "./render-build.sh",
         "build:ts": "tsc -b",
-        "compile": "sol-compiler",
+        "compile": "echo 'Skipping Solidity compilation for Render deployment'",
         "db:migrate": "node -r dotenv/config ./node_modules/.bin/typeorm migration:run -d ./__build__/src/ormconfig.js",
         "db:migration:create": "./node_modules/.bin/typeorm migration:create --config ./__build__/src/ormconfig.js ",
         "db:migration:generate": "./node_modules/.bin/typeorm migration:generate --config ./__build__/src/ormconfig.js ",
@@ -58,7 +58,7 @@
         "@0x/contracts-utils": "^4.8.37",
         "@0x/dev-utils": "^5.0.0",
         "@0x/sol-compiler": "^4.8.3",
-        "sol-compiler": "^4.8.3",
+
         "@0x/typescript-typings": "^5.3.1",
         "@sentry/types": "^7.14.0",
         "@types/chai": "^5.2.2",

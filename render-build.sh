@@ -22,6 +22,7 @@ fi
 
 # Skip Solidity compilation and contract generation for Render
 echo "Skipping Solidity compilation for Render deployment..."
+echo "Note: sol-compiler dependency removed for Render compatibility"
 
 # Build TypeScript only
 echo "Building TypeScript..."
