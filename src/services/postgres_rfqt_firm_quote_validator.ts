@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { Counter, Summary } from 'prom-client';
-import { Connection, In } from 'typeorm';
+import { DataSource, In } from 'typeorm';
 import { Repository } from 'typeorm/repository/Repository';
 
 import { BigNumber, RfqFirmQuoteValidator, RfqOrderFields } from '../asset-swapper';
@@ -60,7 +60,7 @@ export class PostgresRfqtFirmQuoteValidator implements RfqFirmQuoteValidator {
     private readonly _cacheExpiryThresholdMs: number;
     private readonly _workerId: string;
 
-    public static create(connection: Connection | undefined): RfqFirmQuoteValidator | undefined {
+    public static create(connection: DataSource | undefined): RfqFirmQuoteValidator | undefined {
         if (connection === undefined) {
             return undefined;
         }

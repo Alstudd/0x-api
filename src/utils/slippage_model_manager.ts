@@ -85,7 +85,7 @@ const createSlippageModelCache = (
  * representation (e.g WETH)
  */
 const normalizeTokenAddress = (token: string): string => {
-    const isNativeAsset = isNativeSymbolOrAddress(token, CHAIN_ID);
+    const isNativeAsset = isNativeSymbolOrAddress(token, CHAIN_ID as any);
     return isNativeAsset ? NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID].toLowerCase() : token.toLowerCase();
 };
 

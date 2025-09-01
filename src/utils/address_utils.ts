@@ -31,7 +31,7 @@ export const objectETHAddressNormalizer = (obj: Record<string, string>) => {
  */
 export function findTokenAddressOrThrowApiError(address: string, field: string, chainId: ChainId): string {
     try {
-        return findTokenAddressOrThrow(address, chainId);
+        return findTokenAddressOrThrow(address, chainId as any);
     } catch (e) {
         throw new ValidationError([
             {

@@ -1,7 +1,7 @@
 import { BigNumber } from '@0x/utils';
 import * as express from 'express';
 import { StatusCodes } from 'http-status-codes';
-import * as isValidUUID from 'uuid-validate';
+import isValidUUID from 'uuid-validate';
 
 import { CHAIN_ID, FEE_RECIPIENT_ADDRESS, TAKER_FEE_UNIT_AMOUNT, WHITELISTED_TOKENS } from '../config';
 import { NULL_ADDRESS, SRA_DOCS_URL, ZERO } from '../constants';

@@ -5,7 +5,7 @@ import { BigNumber } from '@0x/utils';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import { linearBuckets } from 'prom-client';
-import * as validateUUID from 'uuid-validate';
+import validateUUID from 'uuid-validate';
 
 import {
     DEFAULT_LOGGER_INCLUDE_TIMESTAMP,

@@ -1,4 +1,4 @@
-import { ConnectionOptions } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 
 import { POSTGRES_READ_REPLICA_URIS, POSTGRES_URI } from './config';
 import {
@@ -25,7 +25,7 @@ const entities = [
     OrderWatcherSignedOrderEntity,
 ];
 
-const config: ConnectionOptions | undefined =
+const config: DataSourceOptions | undefined =
     POSTGRES_URI === undefined
         ? undefined
         : {
@@ -47,9 +47,11 @@ const config: ConnectionOptions | undefined =
                         },
                     }
                   : { url: POSTGRES_URI }),
-              cli: {
-                  migrationsDir: 'migrations',
-              },
+
           };
 
-export default config;
+// Create and export DataSource for TypeORM 0.3
+const AppDataSource = config ? new DataSource(config) : undefined;
+
+export default AppDataSource;
+export { config };

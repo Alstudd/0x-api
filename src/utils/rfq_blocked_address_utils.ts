@@ -1,5 +1,5 @@
 import { Gauge } from 'prom-client';
-import { Connection } from 'typeorm/connection/Connection';
+import { DataSource } from 'typeorm';
 
 import { BlockedAddressEntity } from '../entities/BlockedAddressEntity';
 import { logger } from '../logger';
@@ -21,7 +21,7 @@ export class RfqBlockedAddressUtils {
     private _updating: boolean;
     private readonly _ttlMs: number;
 
-    constructor(private readonly _connection: Connection, initialBlockedSet: Set<string>, ttlMs: number) {
+    constructor(private readonly _connection: DataSource, initialBlockedSet: Set<string>, ttlMs: number) {
         this._blocked = initialBlockedSet;
         this._ttlMs = ttlMs;
         this._updating = false;

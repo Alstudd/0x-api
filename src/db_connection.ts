@@ -1,22 +1,25 @@
-import { Connection, createConnection } from 'typeorm';
+import { DataSource } from 'typeorm';
 
-import ormConfig from './ormconfig';
+import ormConfig, { config } from './ormconfig';
 
-let connection: Connection | undefined;
+let dataSource: DataSource | undefined;
 
-export async function getDBConnection(): Promise<Connection | undefined> {
-    if (connection !== undefined) {
-        return connection;
+export async function getDBConnection(): Promise<DataSource | undefined> {
+    if (dataSource !== undefined) {
+        return dataSource;
     }
 
-    if (ormConfig === undefined) {
+    if (ormConfig === undefined || config === undefined) {
         return undefined;
     }
-    connection = await createConnection(ormConfig);
-    return connection;
+    dataSource = ormConfig;
+    if (!dataSource.isInitialized) {
+        await dataSource.initialize();
+    }
+    return dataSource;
 }
 
-export async function getDBConnectionOrThrow(): Promise<Connection> {
+export async function getDBConnectionOrThrow(): Promise<DataSource> {
     const connection = await getDBConnection();
     if (connection === undefined) {
         throw new Error('Could not get a DB connection');

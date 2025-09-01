@@ -55,10 +55,10 @@ export class MetaTransactionHandlers {
         // parse query prams
         const params = parseV2RequestBody(req);
         const { buyTokenAddress, sellTokenAddress } = params;
-        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID);
+        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID as any);
 
         // ETH selling isn't supported.
-        if (isNativeSymbolOrAddress(sellTokenAddress, CHAIN_ID)) {
+        if (isNativeSymbolOrAddress(sellTokenAddress, CHAIN_ID as any)) {
             throw new EthSellNotSupportedError();
         }
 
@@ -118,10 +118,10 @@ export class MetaTransactionHandlers {
         const { buyTokenAddress, sellTokenAddress } = params;
 
         // ETH selling isn't supported.
-        if (isNativeSymbolOrAddress(sellTokenAddress, CHAIN_ID)) {
+        if (isNativeSymbolOrAddress(sellTokenAddress, CHAIN_ID as any)) {
             throw new EthSellNotSupportedError();
         }
-        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID);
+        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID as any);
 
         try {
             const metaTransactionPriceCalculation = await this._metaTransactionService.getMetaTransactionV2PriceAsync({
@@ -184,10 +184,10 @@ export class MetaTransactionHandlers {
         // parse query params
         const params = parseV1RequestParams(req);
         const { buyTokenAddress, sellTokenAddress } = params;
-        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID);
+        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID as any);
 
         // ETH selling isn't supported.
-        if (isNativeSymbolOrAddress(sellTokenAddress, CHAIN_ID)) {
+        if (isNativeSymbolOrAddress(sellTokenAddress, CHAIN_ID as any)) {
             throw new EthSellNotSupportedError();
         }
 
@@ -247,10 +247,10 @@ export class MetaTransactionHandlers {
         const { buyTokenAddress, sellTokenAddress } = params;
 
         // ETH selling isn't supported.
-        if (isNativeSymbolOrAddress(sellTokenAddress, CHAIN_ID)) {
+        if (isNativeSymbolOrAddress(sellTokenAddress, CHAIN_ID as any)) {
             throw new EthSellNotSupportedError();
         }
-        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID);
+        const isETHBuy = isNativeSymbolOrAddress(buyTokenAddress, CHAIN_ID as any);
 
         try {
             const metaTransactionPriceCalculation = await this._metaTransactionService.getMetaTransactionV1PriceAsync({
@@ -310,12 +310,12 @@ function parseV1RequestParams(req: express.Request): MetaTransactionV1QuoteReque
     const affiliateFee = parseUtils.parseAffiliateFeeOptions(req);
     const buyAmount = req.query.buyAmount === undefined ? undefined : new BigNumber(req.query.buyAmount as string);
     const buyToken = req.query.buyToken as string;
-    const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
+    const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID as any);
     const integratorId = req.query.integratorId as string;
     const quoteUniqueId = req.query.quoteUniqueId as string | undefined;
     const sellAmount = req.query.sellAmount === undefined ? undefined : new BigNumber(req.query.sellAmount as string);
     const sellToken = req.query.sellToken as string;
-    const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
+    const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID as any);
     const takerAddress = (req.query.takerAddress as string).toLowerCase();
 
     const slippagePercentage = parseFloat(req.query.slippagePercentage as string) || DEFAULT_QUOTE_SLIPPAGE_PERCENTAGE;
@@ -384,12 +384,12 @@ function parseV2RequestBody(req: express.Request): MetaTransactionV2QuoteRequest
     };
     const buyAmount = req.body.buyAmount === undefined ? undefined : new BigNumber(req.body.buyAmount as string);
     const buyToken = req.body.buyToken as string;
-    const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID);
+    const buyTokenAddress = findTokenAddressOrThrowApiError(buyToken, 'buyToken', CHAIN_ID as any);
     const integratorId = req.body.integratorId as string;
     const quoteUniqueId = req.body.quoteUniqueId as string | undefined;
     const sellAmount = req.body.sellAmount === undefined ? undefined : new BigNumber(req.body.sellAmount as string);
     const sellToken = req.body.sellToken as string;
-    const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID);
+    const sellTokenAddress = findTokenAddressOrThrowApiError(sellToken, 'sellToken', CHAIN_ID as any);
     const takerAddress = (req.body.takerAddress as string).toLowerCase();
 
     const metaTransactionVersion = req.body.metaTransactionVersion;

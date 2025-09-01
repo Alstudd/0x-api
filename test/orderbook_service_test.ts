@@ -245,7 +245,7 @@ describe(SUITE_NAME, () => {
 
             // should not save to persistent orders table
             const result = await connection.manager.find(PersistentSignedOrderV4Entity, {
-                hash: apiOrder.metaData.orderHash,
+                where: { hash: apiOrder.metaData.orderHash },
             });
             expect(result).to.deep.equal([]);
 
@@ -256,7 +256,7 @@ describe(SUITE_NAME, () => {
             await orderBookService.addPersistentOrdersAsync([apiOrder.order]);
 
             const result = await connection.manager.find(PersistentSignedOrderV4Entity, {
-                hash: apiOrder.metaData.orderHash,
+                where: { hash: apiOrder.metaData.orderHash },
             });
             const expected = orderUtils.serializePersistentOrder(apiOrder);
             expected.createdAt = result[0].createdAt; // createdAt is saved in the PersistentOrders table directly

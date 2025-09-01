@@ -3,7 +3,7 @@ import { ExchangeProxyMetaTransaction } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { ContractAddresses, ChainId } from '@0x/contract-addresses';
 import { MetaTransaction, OtcOrder } from '@0x/protocol-utils';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { Kafka } from 'kafkajs';
 
 import { SignedOrderV4Entity } from './entities';
@@ -435,7 +435,7 @@ export interface ISwapService {
 
 export interface AppDependencies {
     contractAddresses: ContractAddresses;
-    connection?: Connection;
+    connection?: DataSource;
     kafkaClient?: Kafka;
     orderBookService?: IOrderBookService;
     swapService?: ISwapService;

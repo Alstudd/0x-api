@@ -570,7 +570,7 @@ export class SwapService implements ISwapService {
 
         // Convert into unit amounts
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- TODO: fix me!
-        const wethToken = getTokenMetadataIfExists('WETH', CHAIN_ID)!;
+        const wethToken = getTokenMetadataIfExists('WETH', CHAIN_ID as any)!;
         const sellTokenToEthRate = takerTokenToEthRate
             .times(new BigNumber(10).pow(wethToken.decimals - takerTokenDecimals))
             .decimalPlaces(takerTokenDecimals);

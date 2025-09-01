@@ -14,6 +14,12 @@ interface GasInfoResponse {
     result: GasPrices;
 }
 
+// Fallback gas prices for when oracle fails
+const FALLBACK_GAS_PRICES: GasPrices = {
+    fast: 20000000000, // 20 gwei
+    l1CalldataPricePerUnit: 0,
+};
+
 export class GasPriceUtils {
     private static _instances = new Map<string, GasPriceUtils>();
     private readonly _zeroExGasApiUrl: string;
@@ -78,23 +84,34 @@ export class GasPriceUtils {
     private async _updateGasPriceFromOracleOrThrow(): Promise<void> {
         try {
             const res = await fetch(this._zeroExGasApiUrl);
+            if (!res.ok) {
+                throw new Error(`Gas API returned ${res.status}: ${res.statusText}`);
+            }
             const gasInfo: GasInfoResponse = await res.json();
             // Reset the error count to 0 once we have a successful response
             this._errorCount = 0;
             this._gasPriceEstimation = gasInfo.result;
         } catch (e) {
             this._errorCount++;
-            // If we've reached our max error count then throw
+            console.warn(`Gas price oracle error (attempt ${this._errorCount}):`, e);
+            
+            // If we've reached our max error count then use fallback
             if (this._errorCount > MAX_ERROR_COUNT || this._gasPriceEstimation === undefined) {
                 this._errorCount = 0;
-                throw new Error(SwapQuoterError.NoGasPriceProvidedOrEstimated);
+                console.warn('Using fallback gas prices due to oracle failures');
+                this._gasPriceEstimation = FALLBACK_GAS_PRICES;
+                return; // Don't throw, use fallback instead
             }
         }
     }
 
     private _initializeHeartBeat(): void {
         this._gasPriceHeart.createEvent(1, async () => {
-            await this._updateGasPriceFromOracleOrThrow();
+            try {
+                await this._updateGasPriceFromOracleOrThrow();
+            } catch (e) {
+                console.warn('Heartbeat gas price update failed:', e);
+            }
         });
     }
 }

@@ -1,6 +1,6 @@
 import { LimitOrderFields } from '@0x/protocol-utils';
 import * as _ from 'lodash';
-import { Connection, In, MoreThanOrEqual } from 'typeorm';
+import { DataSource, In, MoreThanOrEqual } from 'typeorm';
 
 import { LimitOrder } from '../asset-swapper';
 import {
@@ -26,17 +26,17 @@ import { OrderWatcher, OrderWatcherInterface } from '../utils/order_watcher';
 import { paginationUtils } from '../utils/pagination_utils';
 
 export class OrderBookService implements IOrderBookService {
-    private readonly _connection: Connection;
+    private readonly _connection: DataSource;
     private readonly _orderWatcher: OrderWatcherInterface;
 
-    public static create(connection: Connection | undefined): OrderBookService | undefined {
+    public static create(connection: DataSource | undefined): OrderBookService | undefined {
         if (connection === undefined) {
             return undefined;
         }
         return new OrderBookService(connection, new OrderWatcher());
     }
 
-    constructor(connection: Connection, orderWatcher: OrderWatcherInterface) {
+    constructor(connection: DataSource, orderWatcher: OrderWatcherInterface) {
         this._connection = connection;
         this._orderWatcher = orderWatcher;
     }
@@ -46,9 +46,9 @@ export class OrderBookService implements IOrderBookService {
     }
     public async getOrderByHashIfExistsAsync(orderHash: string): Promise<SRAOrder | undefined> {
         let signedOrderEntity;
-        signedOrderEntity = await this._connection.manager.findOne(SignedOrderV4Entity, orderHash);
+        signedOrderEntity = await this._connection.manager.findOne(SignedOrderV4Entity, { where: { hash: orderHash } });
         if (!signedOrderEntity) {
-            signedOrderEntity = await this._connection.manager.findOne(PersistentSignedOrderV4Entity, orderHash);
+            signedOrderEntity = await this._connection.manager.findOne(PersistentSignedOrderV4Entity, { where: { hash: orderHash } });
         }
         if (signedOrderEntity === undefined) {
             return undefined;
@@ -135,7 +135,7 @@ export class OrderBookService implements IOrderBookService {
         const minExpiryTime = Math.floor(Date.now() / ONE_SECOND_MS) + SRA_ORDER_EXPIRATION_BUFFER_SECONDS;
         const filtersWithExpirationCheck = filters.map((filter) => ({
             ...filter,
-            expiry: MoreThanOrEqual(minExpiryTime),
+            expiry: MoreThanOrEqual(minExpiryTime.toString()),
         }));
 
         const [signedOrderCount, signedOrderEntities] = await Promise.all([

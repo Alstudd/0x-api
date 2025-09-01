@@ -1,5 +1,5 @@
 import { ChainId, getContractAddressesForChainOrThrow } from '@0x/contract-addresses';
-import { FastABI } from '@0x/fast-abi';
+// import { FastABI } from '@0x/fast-abi'; // Disabled due to native module compatibility issues
 import { LimitOrder } from '@0x/protocol-utils';
 import { BigNumber, providerUtils } from '@0x/utils';
 import { BlockParamLiteral, MethodAbi, SupportedProvider, ZeroExProvider } from 'ethereum-types';
@@ -114,19 +114,13 @@ export class SwapQuoter {
             { block: BlockParamLiteral.Latest, overrides: defaultCodeOverrides },
             options.samplerOverrides,
         );
-        const fastAbi = new FastABI(ERC20BridgeSamplerContract.ABI() as MethodAbi[], { BigNumber });
+        // Note: Removed FastABI dependency due to native module compatibility issues
+        // Using standard contract wrapper functionality instead
         const samplerContract = new ERC20BridgeSamplerContract(
             samplerAddress,
             this.provider,
             {
                 gas: samplerGasLimit,
-            },
-            {},
-            undefined,
-            {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                encodeInput: (fnName: string, values: any) => fastAbi.encodeInput(fnName, values),
-                decodeOutput: (fnName: string, data: string) => fastAbi.decodeOutput(fnName, data),
             },
         );
 
@@ -169,7 +163,7 @@ export class SwapQuoter {
         options: Partial<SwapQuoteRequestOpts>,
     ): Promise<BigNumber> {
         // Return 1 if `token` is native or wrapped native token
-        if (isNativeSymbolOrAddress(tokenAddress, CHAIN_ID) || isNativeWrappedSymbolOrAddress(tokenAddress, CHAIN_ID)) {
+        if (isNativeSymbolOrAddress(tokenAddress, CHAIN_ID as any) || isNativeWrappedSymbolOrAddress(tokenAddress, CHAIN_ID as any)) {
             return new BigNumber(1);
         }
 

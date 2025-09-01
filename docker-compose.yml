@@ -9,10 +9,9 @@ services:
             CHAIN_ID: 1337
             NETWORK_ID: 1337
     postgres:
-        image: postgres:9.6
+        image: postgres:14
         environment:
-            - POSTGRES_USER=api
-            - POSTGRES_PASSWORD=api
+            - POSTGRES_PASSWORD=postgres
             - POSTGRES_DB=api
         # persist the postgres data to disk so we don't lose it
         # on rebuilds.

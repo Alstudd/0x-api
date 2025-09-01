@@ -104,15 +104,18 @@ export class SwapHandlers {
         const auth = req.header('Authorization');
         REGISTRY_ENDPOINT_FETCHED.labels(auth || 'N/A').inc();
         if (auth === undefined) {
-            return res.status(StatusCodes.UNAUTHORIZED).end();
+            res.status(StatusCodes.UNAUTHORIZED).end();
+            return;
         }
         const authTokenRegex = auth.match(BEARER_REGEX);
         if (!authTokenRegex) {
-            return res.status(StatusCodes.UNAUTHORIZED).end();
+            res.status(StatusCodes.UNAUTHORIZED).end();
+            return;
         }
         const authToken = authTokenRegex[1];
         if (!REGISTRY_SET.has(authToken)) {
-            return res.status(StatusCodes.UNAUTHORIZED).end();
+            res.status(StatusCodes.UNAUTHORIZED).end();
+            return;
         }
         res.status(StatusCodes.OK).send(RFQT_INTEGRATOR_IDS).end();
     }
@@ -382,8 +385,8 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
     // Parse tokens and eth wrap/unwraps
     const sellTokenRaw = req.query.sellToken as string;
     const buyTokenRaw = req.query.buyToken as string;
-    const isNativeSell = isNativeSymbolOrAddress(sellTokenRaw, CHAIN_ID);
-    const isNativeBuy = isNativeSymbolOrAddress(buyTokenRaw, CHAIN_ID);
+    const isNativeSell = isNativeSymbolOrAddress(sellTokenRaw, CHAIN_ID as any);
+    const isNativeBuy = isNativeSymbolOrAddress(buyTokenRaw, CHAIN_ID as any);
     // NOTE: Internally all Native token (like ETH) trades are for their wrapped equivalent (ie WETH), we just wrap/unwrap automatically
     const sellToken = findTokenAddressOrThrowApiError(
         isNativeSell ? NATIVE_FEE_TOKEN_BY_CHAIN_ID[CHAIN_ID] : sellTokenRaw,
@@ -395,8 +398,8 @@ const parseSwapQuoteRequestParams = (req: express.Request, endpoint: 'price' | '
         'buyToken',
         CHAIN_ID,
     ).toLowerCase();
-    const isWrap = isNativeSell && isNativeWrappedSymbolOrAddress(buyToken, CHAIN_ID);
-    const isUnwrap = isNativeWrappedSymbolOrAddress(sellToken, CHAIN_ID) && isNativeBuy;
+    const isWrap = isNativeSell && isNativeWrappedSymbolOrAddress(buyToken, CHAIN_ID as any);
+    const isUnwrap = isNativeWrappedSymbolOrAddress(sellToken, CHAIN_ID as any) && isNativeBuy;
     // if token addresses are the same but a unwrap or wrap operation is requested, ignore error
     if (!isUnwrap && !isWrap && sellToken === buyToken) {
         throw new ValidationError(

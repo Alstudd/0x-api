@@ -95,3 +95,5 @@ TODO.txt
 # Foundry
 foundry-artifacts
 foundry-cache
+
+.yarn

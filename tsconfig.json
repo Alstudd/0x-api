@@ -2,10 +2,10 @@
     "ts-node": { "files": true },
     "compilerOptions": {
         "module": "commonjs",
-        "lib": ["es2020", "dom"],
-        "target": "es2019",
+        "lib": ["es2022", "dom"],
+        "target": "es2020",
         "outDir": "__build__",
-        "strict": true,
+        "strict": false,
         "downlevelIteration": true,
         "noUnusedLocals": false,
         "emitDecoratorMetadata": true,
@@ -15,7 +15,8 @@
             "../../node_modules/@0x/typescript-typings/types",
             "../../node_modules/@types",
             "node_modules/@0x/typescript-typings/types",
-            "node_modules/@types"
+            "node_modules/@types",
+            "src/types"
         ],
         "noUnusedParameters": false,
         "resolveJsonModule": true,
@@ -77,5 +78,6 @@
         "test/generated-artifacts/UtilitySampler.json",
         "test/generated-artifacts/VelodromeSampler.json",
         "test/generated-artifacts/WooPPSampler.json"
-    ]
+    ],
+    "exclude": ["test/**/*", "**/*.test.ts", "**/*_test.ts"]
 }

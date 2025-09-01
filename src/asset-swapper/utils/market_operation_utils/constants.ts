@@ -59,6 +59,8 @@ function valueByChainId<T>(rest: Partial<{ [key in ChainId]: T }>, defaultValue:
         [ChainId.Celo]: defaultValue,
         [ChainId.Optimism]: defaultValue,
         [ChainId.Arbitrum]: defaultValue,
+        [8453]: defaultValue, // Base
+        [11155111]: defaultValue, // Sepolia
         ...(rest || {}),
     };
 }
@@ -214,6 +216,8 @@ export const SELL_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.AaveV3,
         ERC20BridgeSource.WOOFi,
     ]),
+    [8453]: new SourceFilters([]), // Base - empty for now
+    [11155111]: new SourceFilters([]), // Sepolia - empty for now
 };
 
 /**
@@ -367,6 +371,8 @@ export const BUY_SOURCE_FILTER_BY_CHAIN_ID: Record<ChainId, SourceFilters> = {
         ERC20BridgeSource.AaveV3,
         ERC20BridgeSource.WOOFi,
     ]),
+    [8453]: new SourceFilters([]), // Base - empty for now
+    [11155111]: new SourceFilters([]), // Sepolia - empty for now
 };
 
 /**
@@ -910,6 +916,8 @@ export const DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID: Record<ChainId, string[]> 
         ARBITRUM_TOKENS.MIM,
     ],
     [ChainId.Ganache]: [],
+    [8453]: [], // Base - empty for now
+    [11155111]: [], // Sepolia - empty for now
 };
 
 // Note be careful here as a UNION is performed when finding intermediary tokens
@@ -991,6 +999,8 @@ export const DEFAULT_TOKEN_ADJACENCY_GRAPH_BY_CHAIN_ID: Record<ChainId, TokenAdj
     [ChainId.PolygonMumbai]: new TokenAdjacencyGraphBuilder(
         DEFAULT_INTERMEDIATE_TOKENS_BY_CHAIN_ID[ChainId.PolygonMumbai],
     ).build(),
+    [8453]: new TokenAdjacencyGraphBuilder([]).build(), // Base - empty for now
+    [11155111]: new TokenAdjacencyGraphBuilder([]).build(), // Sepolia - empty for now
 };
 
 // TODO (rhinodavid): this constant is being used for reasons other than fees

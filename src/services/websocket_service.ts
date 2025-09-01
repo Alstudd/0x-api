@@ -57,7 +57,7 @@ export class WebsocketService {
     private readonly _requestIdToSocket: Map<string, WrappedWebSocket> = new Map(); // requestId to WebSocket mapping
     private readonly _requestIdToSubscriptionOpts: Map<string, OrdersChannelSubscriptionOpts | ALL_SUBSCRIPTION_OPTS> =
         new Map(); // requestId -> { base, quote }
-    private readonly _orderEventsSubscription?: ZenObservable.Subscription;
+    private readonly _orderEventsSubscription?: any;
     private static _matchesOrdersChannelSubscription(
         order: SignedLimitOrder,
         opts: OrdersChannelSubscriptionOpts | ALL_SUBSCRIPTION_OPTS,

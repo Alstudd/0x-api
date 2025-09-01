@@ -5,7 +5,7 @@ import * as delay from 'delay';
 import * as express from 'express';
 import * as _ from 'lodash';
 import { Gauge, Summary } from 'prom-client';
-import { Connection } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 import { artifacts } from '../artifacts';
 import { BalanceCheckerContract } from '../asset-swapper';
@@ -89,7 +89,7 @@ if (require.main === module) {
 
 async function runRfqBalanceCacheAsync(
     web3Wrapper: Web3Wrapper,
-    connection: Connection,
+    connection: DataSource,
     balanceCheckerContractInterface: BalanceCheckerContract,
 ): Promise<void> {
     if (defaultConfig.ENABLE_PROMETHEUS_METRICS) {
@@ -160,7 +160,7 @@ async function runRfqBalanceCacheAsync(
  * This function retrieves and caches ERC20 balances of RFQ market makers
  */
 export async function cacheRfqBalancesAsync(
-    connection: Connection,
+    connection: DataSource,
     balanceCheckerContractInterface: BalanceCheckerContract,
     codeOverride: boolean,
     workerId: string,
@@ -177,7 +177,7 @@ export async function cacheRfqBalancesAsync(
 // NOTE: this only returns a partial entity class, just token address and maker address
 // Cache the query results to reduce reads from the DB
 let MAKER_TOKEN_CACHE: ResultCache<MakerBalanceChainCacheEntity[]>;
-async function getMakerTokensAsync(connection: Connection, workerId: string): Promise<MakerBalanceChainCacheEntity[]> {
+async function getMakerTokensAsync(connection: DataSource, workerId: string): Promise<MakerBalanceChainCacheEntity[]> {
     const start = new Date().getTime();
 
     if (!MAKER_TOKEN_CACHE) {
@@ -265,7 +265,7 @@ async function getErc20BalancesAsync(
 async function updateErc20BalancesAsync(
     balancesCallInput: BalancesCallInput,
     balances: string[],
-    connection: Connection,
+    connection: DataSource,
     updateTime: Date,
 ): Promise<void> {
     const toSave = balancesCallInput.addresses.map((addr, i) => {
