@@ -1,5 +1,6 @@
 import { createMetricsRouter, MetricsService } from '@0x/api-utils';
-import { BlockParamLiteral, SupportedProvider, Web3Wrapper } from '@0x/dev-utils';
+import { BlockParamLiteral, SupportedProvider } from 'ethereum-types';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import { BigNumber, logUtils } from '@0x/utils';
 import * as delay from 'delay';
 import * as express from 'express';

@@ -1,4 +1,4 @@
-import { Web3Wrapper } from '@0x/dev-utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import { S3 } from 'aws-sdk';
 import axios from 'axios';
 import { Kafka } from 'kafkajs';

@@ -24,8 +24,8 @@ fi
 echo "Skipping Solidity compilation for Render deployment..."
 echo "Note: sol-compiler dependency removed for Render compatibility"
 
-# Build TypeScript only
+# Build TypeScript only (excluding test files)
 echo "Building TypeScript..."
-npx tsc -p tsconfig.json
+npx tsc -p tsconfig.render.json
 
 echo "Build completed successfully!"

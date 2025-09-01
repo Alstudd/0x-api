@@ -1,4 +1,4 @@
-import { Web3Wrapper } from '@0x/dev-utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import { FillQuoteTransformerOrderType } from '@0x/protocol-utils';
 import { BigNumber, logUtils } from '@0x/utils';
 
