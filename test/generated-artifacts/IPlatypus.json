@@ -1,0 +1,125 @@
+{
+	"schemaVersion": "2.0.0",
+	"contractName": "IPlatypus",
+	"compilerOutput": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "token",
+						"type": "address"
+					}
+				],
+				"name": "assetOf",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "fromToken",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "toToken",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "fromAmount",
+						"type": "uint256"
+					}
+				],
+				"name": "quotePotentialSwap",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "potentialOutcome",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "haircut",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"evm": {
+			"bytecode": {
+				"linkReferences": {},
+				"object": "0x",
+				"opcodes": "",
+				"sourceMap": ""
+			},
+			"deployedBytecode": {
+				"immutableReferences": {},
+				"linkReferences": {},
+				"object": "0x",
+				"opcodes": "",
+				"sourceMap": ""
+			}
+		}
+	},
+	"sourceTreeHashHex": "0x945bf99aa13713df275b3577cb9ae1ecf259f2b370e897e068af8b70a5e6abd2",
+	"sources": {
+		"./IPlatypus.sol": {
+			"id": 43,
+			"content": "pragma solidity ^0.6;\n\ninterface IPlatypus {\n    function quotePotentialSwap(\n        address fromToken,\n        address toToken,\n        uint256 fromAmount\n    ) external view returns (uint256 potentialOutcome, uint256 haircut);\n\n    function assetOf(address token) external view returns (address);\n}\n"
+		}
+	},
+	"sourceCodes": {
+		"./IPlatypus.sol": "pragma solidity ^0.6;\n\ninterface IPlatypus {\n    function quotePotentialSwap(\n        address fromToken,\n        address toToken,\n        uint256 fromAmount\n    ) external view returns (uint256 potentialOutcome, uint256 haircut);\n\n    function assetOf(address token) external view returns (address);\n}\n"
+	},
+	"compiler": {
+		"name": "solc",
+		"version": "0.6.12+commit.27d51765",
+		"settings": {
+			"remappings": [
+				"@0x/contracts-utils=/Users/alstudd/Desktop/Alston Codes/SkyTrade-Main/node_modules/@0x/contracts-utils",
+				"@0x/contracts-erc20=/Users/alstudd/Desktop/Alston Codes/SkyTrade-Main/node_modules/@0x/contracts-erc20",
+				"@uniswap/v3-core=/Users/alstudd/Desktop/Alston Codes/SkyTrade-Main/node_modules/@uniswap/v3-core",
+				"@uniswap/v3-periphery=/Users/alstudd/Desktop/Alston Codes/SkyTrade-Main/node_modules/@uniswap/v3-periphery"
+			],
+			"optimizer": {
+				"enabled": true,
+				"runs": 200,
+				"details": {
+					"yul": false,
+					"deduplicate": true
+				}
+			},
+			"outputSelection": {
+				"*": {
+					"*": [
+						"abi",
+						"devdoc",
+						"evm.bytecode.object",
+						"evm.bytecode.sourceMap",
+						"evm.deployedBytecode.object",
+						"evm.deployedBytecode.sourceMap"
+					]
+				}
+			},
+			"evmVersion": "istanbul"
+		}
+	},
+	"chains": {}
+}

@@ -89,8 +89,8 @@ TODOs.org
 TODO.txt
 
 # Solidity artifacts and wrappers
-**/generated-artifacts
-**/generated-wrappers
+/generated-artifacts
+/generated-wrappers
 
 # Foundry
 foundry-artifacts

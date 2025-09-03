@@ -7,16 +7,14 @@ export SKIP_HID_BUILD=true
 export NODE_ENV=production
 
 echo "Creating required directories..."
-mkdir -p test/generated-artifacts
-mkdir -p test/generated-wrappers
 mkdir -p generated-artifacts
 mkdir -p generated-wrappers
 
 echo "Copying real contract artifacts from source..."
-cp generated-artifacts/*.json test/generated-artifacts/ 2>/dev/null || echo "No source artifacts found, will create minimal ones"
+cp test/generated-artifacts/*.json generated-artifacts/ 2>/dev/null || echo "No source artifacts found, will create minimal ones"
 
 echo "Copying real contract wrappers from source..."
-cp generated-wrappers/*.ts test/generated-wrappers/ 2>/dev/null || echo "No source wrappers found, will create minimal ones"
+cp test/generated-wrappers/*.ts generated-wrappers/ 2>/dev/null || echo "No source wrappers found, will create minimal ones"
 
 echo "Creating all required contract artifacts..."
 
