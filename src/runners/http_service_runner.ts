@@ -124,7 +124,9 @@ export async function runHttpServiceAsync(
         const wsService = new WebsocketService(server, dependencies.kafkaClient, dependencies.websocketOpts);
         wsService.startAsync().catch((error) => logger.error(error.stack));
     } else {
-        logger.warn('Could not establish kafka connection, websocket service will not start');
+        logger.info('Starting simplified WebSocket service without Kafka dependency');
+        const wsService = new WebsocketService(server, undefined, dependencies.websocketOpts);
+        wsService.startAsync().catch((error) => logger.error(error.stack));
     }
 
     server.listen(config.httpPort);

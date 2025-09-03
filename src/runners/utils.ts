@@ -168,7 +168,7 @@ export async function getDefaultAppDependenciesAsync(
         logger.error(err.stack);
     }
 
-    const websocketOpts = { path: WEBSOCKET_ORDER_UPDATES_PATH, kafkaTopic: ORDER_WATCHER_KAFKA_TOPIC };
+    const websocketOpts = { path: '/sra/v4', kafkaTopic: ORDER_WATCHER_KAFKA_TOPIC };
     const hasSentry: boolean = SENTRY_ENABLED;
 
     if (hasSentry) {

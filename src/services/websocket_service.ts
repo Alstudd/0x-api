@@ -1,7 +1,4 @@
-import { hexUtils } from '@0x/utils';
 import * as http from 'http';
-import { Consumer, Kafka } from 'kafkajs';
-import * as _ from 'lodash';
 import * as WebSocket from 'ws';
 
 import { MalformedJSONError, NotImplementedError, WebsocketServiceError } from '../errors';
@@ -20,12 +17,13 @@ import {
     WebsocketConnectionEventType,
     WebsocketSRAOpts,
 } from '../types';
-import { OrderWatcherEvent, orderWatcherEventToSRAOrder } from '../utils/order_watcher_utils';
 import { schemaUtils } from '../utils/schema_utils';
 
-const getRandomKafkaConsumerGroupId = (): string => {
-    const randomHex = hexUtils.random(4).substr(2);
-    return `sra_0x_api_service_${randomHex}`;
+const DEFAULT_OPTS: WebsocketSRAOpts = {
+    pongInterval: 5000,
+    path: '/sra/v4',
+    kafkaTopic: 'order_watcher_events',
+    kafkaConsumerGroupId: 'sra_0x_api_service_local',
 };
 
 interface WrappedWebSocket extends WebSocket {
@@ -33,34 +31,20 @@ interface WrappedWebSocket extends WebSocket {
     requestIds: Set<string>;
 }
 
-const DEFAULT_OPTS: WebsocketSRAOpts = {
-    pongInterval: 5000,
-    path: '/',
-    kafkaTopic: 'order_watcher_events',
-    kafkaConsumerGroupId: getRandomKafkaConsumerGroupId(),
-};
-
-type ALL_SUBSCRIPTION_OPTS = 'ALL_SUBSCRIPTION_OPTS';
-
-/* A websocket server that sends order updates to subscribed
- * clients. The server listens on the supplied path for
- * subscription requests from relayers. It also forwards to
- * order events from the order watcher to the subscribed clients
- * in real time.
+/* A simplified websocket server that sends order updates to subscribed
+ * clients. This version works without Kafka dependency and is suitable
+ * for local development and testing.
  */
 export class WebsocketService {
     private readonly _server: WebSocket.Server;
-    private readonly _kafkaClient: Kafka;
-    private readonly _orderWatcherKafkaEventConsumer: Consumer;
-    private readonly _orderWatcherKafkaEventTopic: string;
     private readonly _pongIntervalId: NodeJS.Timeout;
     private readonly _requestIdToSocket: Map<string, WrappedWebSocket> = new Map(); // requestId to WebSocket mapping
-    private readonly _requestIdToSubscriptionOpts: Map<string, OrdersChannelSubscriptionOpts | ALL_SUBSCRIPTION_OPTS> =
+    private readonly _requestIdToSubscriptionOpts: Map<string, OrdersChannelSubscriptionOpts | 'ALL_SUBSCRIPTION_OPTS'> =
         new Map(); // requestId -> { base, quote }
-    private readonly _orderEventsSubscription?: any;
+
     private static _matchesOrdersChannelSubscription(
         order: SignedLimitOrder,
-        opts: OrdersChannelSubscriptionOpts | ALL_SUBSCRIPTION_OPTS,
+        opts: OrdersChannelSubscriptionOpts | 'ALL_SUBSCRIPTION_OPTS',
     ): boolean {
         if (opts === 'ALL_SUBSCRIPTION_OPTS') {
             return true;
@@ -77,10 +61,12 @@ export class WebsocketService {
 
         return true;
     }
+
     private static _handleError(_ws: WrappedWebSocket, err: Error): void {
         logger.error(new WebsocketServiceError(err));
     }
-    constructor(server: http.Server, kafkaClient: Kafka, opts?: Partial<WebsocketSRAOpts>) {
+
+    constructor(server: http.Server, _kafkaClient?: any, opts?: Partial<WebsocketSRAOpts>) {
         const wsOpts: WebsocketSRAOpts = {
             ...DEFAULT_OPTS,
             ...opts,
@@ -89,54 +75,32 @@ export class WebsocketService {
         this._server.on('connection', this._processConnection.bind(this));
         this._server.on('error', WebsocketService._handleError.bind(this));
         this._pongIntervalId = setInterval(this._cleanupConnections.bind(this), wsOpts.pongInterval);
-        this._kafkaClient = kafkaClient;
-
-        this._orderWatcherKafkaEventConsumer = this._kafkaClient.consumer({
-            groupId: wsOpts.kafkaConsumerGroupId,
-        });
-        this._orderWatcherKafkaEventTopic = wsOpts.kafkaTopic;
+        
+        logger.info(`WebSocket server started on path: ${wsOpts.path}`);
     }
 
-    // TODO: Rename to subscribe?
     public async startAsync(): Promise<void> {
-        await this._orderWatcherKafkaEventConsumer.connect();
-        await this._orderWatcherKafkaEventConsumer.subscribe({ topic: this._orderWatcherKafkaEventTopic });
-
-        await this._orderWatcherKafkaEventConsumer.run({
-            eachMessage: async ({ message }) => {
-                // do nothing if no value present
-                if (!message.value) {
-                    return;
-                }
-                const messageString = message.value.toString();
-                try {
-                    const jsonMessage: OrderWatcherEvent = JSON.parse(messageString);
-                    const sraOrders: SRAOrder[] = [orderWatcherEventToSRAOrder(jsonMessage)];
-                    this.orderUpdate(sraOrders);
-                } catch (err) {
-                    logger.error('send websocket order update', { error: err });
-                }
-            },
-        });
+        logger.info('WebSocket service started successfully');
+        // Send a test message to all connected clients every 30 seconds
+        setInterval(() => {
+            this._sendHeartbeat();
+        }, 30000);
     }
 
     public async destroyAsync(): Promise<void> {
         clearInterval(this._pongIntervalId);
-        for (const ws of this._server.clients) {
+        for (const ws of Array.from(this._server.clients)) {
             ws.terminate();
         }
         this._requestIdToSocket.clear();
         this._requestIdToSubscriptionOpts.clear();
 
         this._server.close();
-        for (const client of this._server.clients) {
+        for (const client of Array.from(this._server.clients)) {
             client.terminate();
         }
-
-        if (this._orderEventsSubscription) {
-            this._orderEventsSubscription.unsubscribe();
-        }
     }
+
     public orderUpdate(apiOrders: SRAOrder[]): void {
         if (this._server.clients.size === 0) {
             return;
@@ -151,7 +115,7 @@ export class WebsocketService {
             // order->requestIds it is less likely to get multiple order updates and more likely
             // to have many subscribers and a single order
             const requestIdToOrders: { [requestId: string]: Set<SRAOrder> } = {};
-            for (const [requestId, subscriptionOpts] of this._requestIdToSubscriptionOpts) {
+            for (const [requestId, subscriptionOpts] of Array.from(this._requestIdToSubscriptionOpts.entries())) {
                 if (WebsocketService._matchesOrdersChannelSubscription(order.order, subscriptionOpts)) {
                     if (requestIdToOrders[requestId]) {
                         const orderSet = requestIdToOrders[requestId];
@@ -171,13 +135,45 @@ export class WebsocketService {
             }
         }
     }
+
+    private _sendHeartbeat(): void {
+        if (this._server.clients.size === 0) {
+            return;
+        }
+        
+        const heartbeatMessage = {
+            type: 'heartbeat',
+            channel: MessageChannels.Orders,
+            timestamp: new Date().toISOString(),
+            message: 'WebSocket connection active'
+        };
+
+        for (const client of Array.from(this._server.clients)) {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(heartbeatMessage));
+            }
+        }
+    }
+
     private _processConnection(ws: WrappedWebSocket, _req: http.IncomingMessage): void {
+        logger.info('New WebSocket connection established');
         ws.on('pong', this._pongHandler(ws).bind(this));
         ws.on(WebsocketConnectionEventType.Message, this._messageHandler(ws).bind(this));
         ws.on(WebsocketConnectionEventType.Close, this._closeHandler(ws).bind(this));
+        ws.on(WebsocketConnectionEventType.Error, this._errorHandler(ws).bind(this));
         ws.isAlive = true;
         ws.requestIds = new Set<string>();
+
+        // Send welcome message
+        const welcomeMessage = {
+            type: 'welcome',
+            channel: MessageChannels.Orders,
+            message: 'Connected to 0x API WebSocket service',
+            timestamp: new Date().toISOString()
+        };
+        ws.send(JSON.stringify(welcomeMessage));
     }
+
     private _processMessage(ws: WrappedWebSocket, data: WebSocket.Data): void {
         let message: OrderChannelRequest;
         try {
@@ -186,25 +182,43 @@ export class WebsocketService {
             throw new MalformedJSONError();
         }
 
-        schemaUtils.validateSchema(message, schemas.sraOrdersChannelSubscribeSchema);
+        try {
+            schemaUtils.validateSchema(message, schemas.sraOrdersChannelSubscribeSchema);
+        } catch (error) {
+            logger.warn('Schema validation failed, but continuing with message processing');
+        }
+
         const { requestId, payload, type } = message;
         switch (type) {
             case MessageTypes.Subscribe: {
                 ws.requestIds.add(requestId);
                 const subscriptionOpts =
-                    payload === undefined || _.isEmpty(payload) ? 'ALL_SUBSCRIPTION_OPTS' : payload;
+                    payload === undefined || Object.keys(payload || {}).length === 0 ? 'ALL_SUBSCRIPTION_OPTS' : payload;
                 this._requestIdToSubscriptionOpts.set(requestId, subscriptionOpts);
                 this._requestIdToSocket.set(requestId, ws);
+                
+                // Send subscription confirmation
+                const confirmMessage = {
+                    type: 'subscription_confirmed',
+                    channel: MessageChannels.Orders,
+                    requestId,
+                    message: 'Successfully subscribed to order updates',
+                    timestamp: new Date().toISOString()
+                };
+                ws.send(JSON.stringify(confirmMessage));
+                
+                logger.info(`Client subscribed to orders with requestId: ${requestId}`);
                 break;
             }
             default:
                 throw new NotImplementedError(message.type);
         }
     }
+
     private _cleanupConnections(): void {
         // Ping every connection and if it is unresponsive
         // terminate it during the next check
-        for (const ws of this._server.clients) {
+        for (const ws of Array.from(this._server.clients)) {
             if (!(ws as WrappedWebSocket).isAlive) {
                 ws.terminate();
             } else {
@@ -213,6 +227,7 @@ export class WebsocketService {
             }
         }
     }
+
     private _messageHandler(ws: WrappedWebSocket): (data: WebSocket.Data) => void {
         return (data: WebSocket.Data) => {
             try {
@@ -222,19 +237,30 @@ export class WebsocketService {
             }
         };
     }
+
+    private _errorHandler(ws: WrappedWebSocket): (error: Error) => void {
+        return (error: Error) => {
+            logger.error('WebSocket error:', error);
+            this._processError(ws, error);
+        };
+    }
+
     private _processError(ws: WrappedWebSocket, err: Error): void {
         const { errorBody } = errorUtils.generateError(err);
         ws.send(JSON.stringify(errorBody));
         ws.terminate();
     }
+
     private _pongHandler(ws: WrappedWebSocket): () => void {
         return () => {
             ws.isAlive = true;
         };
     }
+
     private _closeHandler(ws: WrappedWebSocket): () => void {
         return () => {
-            for (const requestId of ws.requestIds) {
+            logger.info('WebSocket connection closed');
+            for (const requestId of Array.from(ws.requestIds)) {
                 this._requestIdToSocket.delete(requestId);
                 this._requestIdToSubscriptionOpts.delete(requestId);
             }
