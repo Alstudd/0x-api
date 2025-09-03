@@ -134,7 +134,6 @@ app.use('/', createProxyMiddleware({
             res.json({ 
                 message: 'Backend not available',
                 websocket: `${WS_URL}/sra/v4`,
-                backend: BACKEND_URL
             });
         }
     }
@@ -148,6 +147,14 @@ server.listen(WS_PORT, () => {
 });
 
 process.on('SIGINT', () => {
+    console.log('\n🛑 Shutting down proxy server...');
+    server.close(() => {
+        console.log('✅ Server shut down gracefully');
+        process.exit(0);
+    });
+});
+
+process.on('SIGTERM', () => {
     console.log('\n🛑 Shutting down proxy server...');
     server.close(() => {
         console.log('✅ Server shut down gracefully');
