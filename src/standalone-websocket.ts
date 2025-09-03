@@ -150,13 +150,17 @@ app.get('/sra/v4/orders', (req, res) => {
 
 const wsService = new StandaloneWebSocketService(server, '/sra/v4');
 
-const PORT = 3002;
+const WS_PORT = process.env.WS_PORT || 3002;
+const BACKEND_PORT = process.env.HTTP_PORT || 3000;
 
-server.listen(PORT, () => {
-    console.log(`🚀 Standalone WebSocket test server running on port ${PORT}`);
-    console.log(`📡 WebSocket endpoint: ws://localhost:${PORT}/sra/v4`);
-    console.log(`🌐 HTTP endpoint: http://localhost:${PORT}/health`);
-    console.log(`📊 SRA endpoint: http://localhost:${PORT}/sra/v4/orders`);
+const WS_URL = process.env.WS_URL || `ws://localhost:${WS_PORT}`;
+const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${BACKEND_PORT}`;
+
+server.listen(WS_PORT, () => {
+    console.log(`🚀 WebSocket proxy server running on port ${WS_PORT}`);
+    console.log(`📡 WebSocket endpoint: ${WS_URL}/sra/v4`);
+    console.log(`🌐 HTTP proxy to: ${BACKEND_URL}`);
+    console.log(`💚 Health check: ${BACKEND_URL}/health`);
     
     wsService.startAsync().then(() => {
         console.log('✅ WebSocket service started successfully');

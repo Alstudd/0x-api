@@ -3,6 +3,8 @@ const http = require('http');
 const WebSocket = require('ws');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
+require('dotenv').config();
+
 const app = express();
 const server = http.createServer(app);
 
@@ -82,15 +84,34 @@ class WebSocketService {
 
 const wsService = new WebSocketService(server);
 
-const BACKEND_PORT = 3000;
-const BACKEND_URL = `http://localhost:${BACKEND_PORT}`;
+const WS_PORT = process.env.WS_PORT || 3002;
+const BACKEND_PORT = process.env.HTTP_PORT || 3000;
+const FRONTEND_PORT = process.env.FRONTEND_PORT || 3001;
+
+const WS_URL = process.env.WS_URL || `ws://localhost:${WS_PORT}`;
+const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${BACKEND_PORT}`;
+const FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:${FRONTEND_PORT}`;
+
+console.log('🚀 Starting WebSocket proxy server with configuration:');
+console.log(`   WebSocket Port: ${WS_PORT}`);
+console.log(`   Backend Port: ${BACKEND_PORT}`);
+console.log(`   Frontend Port: ${FRONTEND_PORT}`);
+console.log(`   WebSocket URL: ${WS_URL}`);
+console.log(`   Backend URL: ${BACKEND_URL}`);
+console.log(`   Frontend URL: ${FRONTEND_URL}`);
 
 app.get('/health', (req, res) => {
     res.json({ 
         status: 'ok', 
         message: 'WebSocket proxy server running',
-        websocket: 'ws://localhost:3000/sra/v4',
+        websocket: `${WS_URL}/sra/v4`,
         backend: BACKEND_URL,
+        frontend: FRONTEND_URL,
+        ports: {
+            websocket: WS_PORT,
+            backend: BACKEND_PORT,
+            frontend: FRONTEND_PORT
+        },
         timestamp: new Date().toISOString()
     });
 });
@@ -112,36 +133,21 @@ app.use('/', createProxyMiddleware({
         } else {
             res.json({ 
                 message: 'Backend not available',
-                websocket: 'ws://localhost:3002/sra/v4'
+                websocket: `${WS_URL}/sra/v4`,
+                backend: BACKEND_URL
             });
         }
     }
 }));
 
-const PORT = 3002;
-
-server.listen(PORT, () => {
-    console.log(`🚀 WebSocket proxy server running on port ${PORT}`);
-    console.log(`📡 WebSocket endpoint: ws://localhost:${PORT}/sra/v4`);
+server.listen(WS_PORT, () => {
+    console.log(`🚀 WebSocket proxy server running on port ${WS_PORT}`);
+    console.log(`📡 WebSocket endpoint: ${WS_URL}/sra/v4`);
     console.log(`🌐 HTTP proxy to: ${BACKEND_URL}`);
-    console.log(`💚 Health check: http://localhost:${PORT}/health`);
-    
-    console.log('\n📋 To use this setup:');
-    console.log('1. Start your main backend on port 3000 (or change BACKEND_PORT above)');
-    console.log('2. Frontend connects to ws://localhost:3002/sra/v4 (WebSocket)');
-    console.log('3. HTTP requests are proxied to your backend');
-    console.log('4. WebSocket requests are handled locally');
+    console.log(`💚 Health check: ${BACKEND_URL}/health`);
 });
 
 process.on('SIGINT', () => {
-    console.log('\n🛑 Shutting down proxy server...');
-    server.close(() => {
-        console.log('✅ Server shut down gracefully');
-        process.exit(0);
-    });
-});
-
-process.on('SIGTERM', () => {
     console.log('\n🛑 Shutting down proxy server...');
     server.close(() => {
         console.log('✅ Server shut down gracefully');

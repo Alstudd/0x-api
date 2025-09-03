@@ -83,17 +83,51 @@ export class GasPriceUtils {
 
     private async _updateGasPriceFromOracleOrThrow(): Promise<void> {
         try {
-            const res = await fetch(this._zeroExGasApiUrl);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const res = await fetch(this._zeroExGasApiUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'User-Agent': '0x-api/1.0.0'
+                },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
             if (!res.ok) {
                 throw new Error(`Gas API returned ${res.status}: ${res.statusText}`);
             }
-            const gasInfo: GasInfoResponse = await res.json();
-            // Reset the error count to 0 once we have a successful response
+            
+            const responseData = await res.json();
+            
+            if (responseData.medium && responseData.medium.suggestedMaxFeePerGas) {
+                const gasPriceInWei = parseInt(responseData.medium.suggestedMaxFeePerGas, 10);
+                this._gasPriceEstimation = {
+                    fast: gasPriceInWei,
+                    l1CalldataPricePerUnit: 0,
+                };
+            } else if (responseData.result && responseData.result.fast) {
+                this._gasPriceEstimation = responseData.result;
+            } else {
+                throw new Error('Unexpected gas API response format');
+            }
+            
             this._errorCount = 0;
-            this._gasPriceEstimation = gasInfo.result;
         } catch (e) {
             this._errorCount++;
-            console.warn(`Gas price oracle error (attempt ${this._errorCount}):`, e);
+            
+            if (e instanceof Error && e.message.includes('self-signed certificate')) {
+                console.warn(`Gas price oracle SSL certificate error (attempt ${this._errorCount}): ${e.message}`);
+                console.warn('This is likely due to corporate network or proxy SSL interception');
+                console.warn('Consider setting NODE_TLS_REJECT_UNAUTHORIZED=0 for development (NOT recommended for production)');
+            } else if (e instanceof Error && e.name === 'AbortError') {
+                console.warn(`Gas price oracle timeout error (attempt ${this._errorCount}): Request timed out`);
+            } else {
+                console.warn(`Gas price oracle error (attempt ${this._errorCount}):`, e);
+            }
             
             // If we've reached our max error count then use fallback
             if (this._errorCount > MAX_ERROR_COUNT || this._gasPriceEstimation === undefined) {
