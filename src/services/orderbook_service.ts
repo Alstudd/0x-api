@@ -23,6 +23,7 @@ import {
 } from '../types';
 import { orderUtils } from '../utils/order_utils';
 import { OrderWatcher, OrderWatcherInterface } from '../utils/order_watcher';
+import { MockOrderWatcher } from '../utils/mock_order_watcher';
 import { paginationUtils } from '../utils/pagination_utils';
 
 export class OrderBookService implements IOrderBookService {
@@ -33,7 +34,8 @@ export class OrderBookService implements IOrderBookService {
         if (connection === undefined) {
             return undefined;
         }
-        return new OrderBookService(connection, new OrderWatcher());
+        // Use MockOrderWatcher for development - stores orders directly in database
+        return new OrderBookService(connection, new MockOrderWatcher(connection));
     }
 
     constructor(connection: DataSource, orderWatcher: OrderWatcherInterface) {

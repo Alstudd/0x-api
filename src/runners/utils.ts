@@ -34,6 +34,7 @@ import { RfqClient } from '../utils/rfq_client';
 import { RfqDynamicBlacklist } from '../utils/rfq_dyanmic_blacklist';
 import { S3Client } from '../utils/s3_client';
 import { SlippageModelManager } from '../utils/slippage_model_manager';
+import { MockOrderWatcher } from '../../test/utils/mock_order_watcher';
 
 /**
  * Pass this callback into the default server to ensure all dependencies shut down correctly
